@@ -1,0 +1,39 @@
+# Build output
+build/
+*.o
+*.a
+
+# Model weights and generated reference data (large; re-create with reference/ scripts)
+weights/*
+!weights/README.md
+reference/data/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Verilator / simulation
+obj_dir/
+*.vcd
+*.fst
+*.wdb
+
+# Vivado / Vitis HLS (projects are re-created from Tcl in fpga/*/tcl)
+fpga/**/vivado/
+fpga/**/hls/
+.Xil/
+*.jou
+*.log
+*.str
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.gen/
+*.srcs/
+
+# Editors
+.vscode/
+*.swp
