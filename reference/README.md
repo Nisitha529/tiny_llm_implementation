@@ -31,6 +31,7 @@ command resumes an interrupted download, which helps on a slow connection.
 
 | Script | Purpose |
 |---|---|
+| `scripts/export_weights.py` | Write each checkpoint tensor to `weights/npy/<tensor name>.npy` for the C++ loader. BF16 tensors are stored as `uint16` holding the raw bits. |
 | `scripts/check_format.py` | Confirm the 4-bit packing order and BF16 rounding (see [../docs/number_formats.md](../docs/number_formats.md)) |
 | `scripts/dump_reference.py` | Run a prompt step by step through mlx-lm's own modules and save every tap point to `reference/data/<run>/` |
 | `scripts/generate.py` | Plain greedy generation, to record the expected output tokens |

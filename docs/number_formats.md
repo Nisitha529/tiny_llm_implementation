@@ -15,10 +15,12 @@ The weight value is `w = q · s + b`. For a row of 1024 inputs that is 512
 bytes of codes plus 8 × 4 bytes of scale and offset, which is 544 bytes, or
 0.53125 bytes per weight.
 
-**Still to confirm in Phase 0:** the order of the 8 codes inside each 32-bit
-word. The expectation is that element `j` sits in bits `[4·(j%8)+3 : 4·(j%8)]`
-(lowest nibble first). Check it against mlx-lm's dequantize before relying on
-it.
+**Code order inside each 32-bit word:** element `j` sits in bits
+`[4·(j%8)+3 : 4·(j%8)]`, lowest nibble first. tiny-llm's own
+`dequantize_weights` (`src/tiny_llm_ref/quantize.py`, commit `31361c3`) unpacks
+with shifts 0, 4, …, 28, and its Week 2 Day 2 tests compare that against
+`mx.dequantize`. That evidence comes from reading the code only, so still
+check it once in Phase 0 (`reference/scripts/check_format.py`).
 
 Norm weights (`*_layernorm`, `q_norm`, `k_norm`, `model.norm`) are plain BF16.
 

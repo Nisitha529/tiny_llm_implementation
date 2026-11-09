@@ -6,7 +6,7 @@ specific step.
 | Level | What | Checked against | Pass rule |
 |---|---|---|---|
 | L0 | mlx-lm running the checkpoint | — (this is the reference) | — |
-| L1 | C++ float kernels and model (`cpp/src/float`, `cpp/src/model`) | L0 dumps | Per-layer tolerance, same greedy tokens |
+| L1 | C++ float kernels and model (`cpp/src/fp`, `cpp/src/model`) | L0 dumps | Per-layer tolerance, same greedy tokens |
 | L2 | C++ hardware-exact kernels (`cpp/src/hw`) | L1 | Error budget from [number_formats.md](number_formats.md), same greedy tokens |
 | L3 | RTL in Verilator (`rtl/`) | L2 | **Bit-exact** |
 | L4 | FPGA on the Zybo (`fpga/`) | L2 running on the ARM | **Bit-exact** |

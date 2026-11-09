@@ -7,29 +7,63 @@ the FPGA.
 
 ## Layout
 
-| Path | Contents |
-|---|---|
-| `include/tinyllm/` | Headers. `qwen3_config.hpp` holds the model dimensions (Qwen3-0.6B and a tiny test model). |
-| `src/float/` | Float kernels: plain, readable math in `float`. Checked against mlx-lm (level L1). |
-| `src/hw/` | Hardware-exact kernels: the number formats, rounding and operation order the RTL will use. Their output is the bit-level spec (level L2). |
-| `src/model/` | Weight loading and the full decode step, built from either kernel set. |
-| `tests/` | Unit tests and comparisons against `reference/data/`. |
+```
+cpp/
+├── CMakeLists.txt              library `tinyllm` + one ctest per test file
+├── include/tinyllm/
+│   ├── qwen3_config.hpp        model sizes (Qwen3-0.6B and a tiny test model)
+│   ├── common/                 bf16.hpp, npy.hpp, qweights.hpp (4-bit matrix view)
+│   ├── fp/                     float kernels, namespace tinyllm::fp
+│   ├── hw/                     hardware-exact kernels, namespace tinyllm::hw
+│   │                           + formats.hpp (number formats), funcs.hpp (rsqrt, exp, sigmoid, sin/cos)
+│   └── model/                  weights.hpp, kv_cache.hpp, qwen3.hpp (decode step)
+├── src/                        one .cpp per header above (common/, fp/, hw/, model/)
+├── tests/
+│   ├── check.hpp               shared test helpers
+│   ├── common/ fp/ hw/ model/  one test file per header
+│   └── test_config.cpp
+└── tools/                      run_model.cpp, format_sweep.cpp
+```
 
-Each kernel has one file in each set, with the same name: `src/float/rmsnorm.cpp`
-and `src/hw/rmsnorm.cpp`.
+Kernel names are the same in `fp/`, `hw/` and `rtl/src/`: `rmsnorm`,
+`embedding`, `qmatvec`, `vecops`, `swiglu`, `rope`, `attention`.
 
-## Writing hardware-exact kernels
+| Set | Contents | Checked against |
+|---|---|---|
+| `fp/` | Plain, readable math in `float` | mlx-lm reference data (level L1) |
+| `hw/` | The number formats, rounding and operation order the RTL will use. Its output is the bit-level spec for the RTL. | `fp/`, within the error budget (level L2) |
 
-Keep the code close to what the RTL will do:
+The folder is `fp`, not `float`, because `float` is a C++ keyword and can't
+be a namespace name.
 
-- Use fixed-width integer types (`int8_t`, `int32_t`, ...) and spell out
-  every rounding and saturation step.
-- Use simple loops with sizes from `ModelConfig`, and no dynamic allocation
-  inside a kernel.
-- Accumulate in the order the hardware will (for example per group of 128
-  in `qmatvec`), because changing the order changes floating-point results.
-- Keep those headers C++14 so Vitis HLS 2020.2 can read them, in case you
-  want early resource estimates from HLS.
+## Current state
+
+Every file exists. Headers in `common/`, `fp/` and `model/` declare the planned
+interfaces. `hw/` headers are placeholders until the activation format is
+chosen. Source files contain only a TODO, and each test file lists its planned
+checks as comments.
+
+## Rules
+
+- **Kernels look like RTL modules.** They take raw pointers and sizes, write
+  into buffers the caller provides, and never allocate memory.
+- **No external libraries.** That means no downloads, and the same files can
+  be built bare-metal for the ARM later.
+- **Headers stay C++14,** so Vitis HLS 2020.2 can read them. That means
+  `namespace a { namespace b {`, not `namespace a::b`. Sources may use C++17.
+- **Write `hw/` kernels in hardware style:**
+  - Use fixed-width integer types, and spell out every rounding and
+    saturation step.
+  - Accumulate in the order the hardware will, for example per group of 128
+    in `qmatvec`, because changing the order changes floating-point results.
+
+## Adding a kernel or test
+
+1. Implement the function in `src/<set>/<kernel>.cpp`. The library already
+   compiles every source file.
+2. Write the test in `tests/<set>/test_<kernel>.cpp` with a `main()` that
+   returns non-zero on failure.
+3. Uncomment its `tinyllm_test(...)` line in `CMakeLists.txt`.
 
 ## Build
 
@@ -39,11 +73,15 @@ cmake --build build/cpp
 ctest --test-dir build/cpp --output-on-failure
 ```
 
-## Suggested order
+## Order
 
-1. `qmatvec` (97.5% of the work, and it fixes the weight format)
-2. `rmsnorm`, `rope`, `swiglu`, `vecops`, `embedding`
-3. `attention` with the KV cache
-4. Full model (`src/model/`). Phase 1 is done when it produces the same
-   greedy tokens as mlx-lm.
-5. Activation format experiments (see [../docs/number_formats.md](../docs/number_formats.md))
+1. `common/bf16` and `tests/check.hpp`
+2. `fp/rmsnorm`, the easiest kernel, which exercises the test setup
+3. `common/npy` and `common/qweights`, then `fp/embedding`, which settles the
+   4-bit format on one row
+4. `fp/qmatvec`, 97.5% of the work
+5. `fp/vecops`, `fp/swiglu`, `fp/rope`
+6. `fp/attention` and `model/kv_cache`
+7. `model/weights` and `model/qwen3`. Phase 1's float part is done when
+   `test_generate` produces the same greedy tokens as mlx-lm.
+8. `tools/format_sweep`, then `hw/formats`, `hw/funcs` and the `hw/` kernels

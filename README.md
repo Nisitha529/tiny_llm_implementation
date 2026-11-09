@@ -36,10 +36,11 @@ reference/    Phase 0: Python scripts that save golden outputs from mlx-lm
 weights/      Checkpoint and converted weight files (not tracked by git)
 cpp/          Phase 1: C++ kernels and the full C++ model
   include/tinyllm/   Headers (model config, kernel interfaces)
-  src/float/         Float reference kernels
+  src/fp/            Float reference kernels
   src/hw/            Hardware-exact kernels (the RTL's bit-level spec)
   src/model/         Full model that chains the kernels
   tests/             Unit tests and comparisons against reference data
+  tools/             Command-line programs (run the model, format sweep)
 rtl/          Phase 2: SystemVerilog
   src/<kernel>/      One folder per kernel
   src/common/        Shared blocks (FIFOs, BF16 helpers, AXI)
