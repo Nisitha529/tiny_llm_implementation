@@ -1,7 +1,7 @@
 // Read-only view of one 4-bit matrix in the checkpoint format.
 // Format: docs/number_formats.md, section "Weights: 4-bit, groups of 128".
 //
-// Implement the helpers as inline functions in this header.
+// Implementation: src/common/qweights.cpp.
 #pragma once
 
 #include <cstdint>

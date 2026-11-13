@@ -11,7 +11,9 @@ endif()
 
 # ---------------------------------------------------------------- library
 set(TINYLLM_COMMON_SOURCES
+  src/common/bf16.cpp  
   src/common/npy.cpp
+  src/common/qweights.cpp
 )
 set(TINYLLM_FP_SOURCES
   src/fp/rmsnorm.cpp
@@ -62,7 +64,7 @@ tinyllm_test(test_config tests/test_config.cpp)
 
 # Uncomment each line once its test file has a main() and real checks.
 # common
-# tinyllm_test(test_bf16       tests/common/test_bf16.cpp)
+tinyllm_test(test_bf16       tests/common/test_bf16.cpp)
 # tinyllm_test(test_npy        tests/common/test_npy.cpp)
 # tinyllm_test(test_qweights   tests/common/test_qweights.cpp)
 # fp kernels

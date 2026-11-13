@@ -45,6 +45,9 @@ checks as comments.
 
 ## Rules
 
+- **Headers declare, `.cpp` files implement.** Function bodies never go in a
+  header. Each header has a matching `.cpp` under `src/`, listed in
+  `CMakeLists.txt`.
 - **Kernels look like RTL modules.** They take raw pointers and sizes, write
   into buffers the caller provides, and never allocate memory.
 - **No external libraries.** That means no downloads, and the same files can
