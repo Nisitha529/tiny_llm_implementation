@@ -54,7 +54,7 @@ enable_testing()
 
 # tinyllm_test(<name> <source>): build one test program and register it with ctest.
 function(tinyllm_test name source)
-  add_executable(${name} ${source})
+  add_executable(${name} ${source} ${CMAKE_CURRENT_SOURCE_DIR}/tests/check.cpp)
   target_link_libraries(${name} PRIVATE tinyllm)
   target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
   add_test(NAME ${name} COMMAND ${name})
@@ -68,7 +68,7 @@ tinyllm_test(test_bf16       tests/common/test_bf16.cpp)
 # tinyllm_test(test_npy        tests/common/test_npy.cpp)
 # tinyllm_test(test_qweights   tests/common/test_qweights.cpp)
 # fp kernels
-# tinyllm_test(test_fp_rmsnorm   tests/fp/test_rmsnorm.cpp)
+tinyllm_test(test_fp_rmsnorm   tests/fp/test_rmsnorm.cpp)
 # tinyllm_test(test_fp_embedding tests/fp/test_embedding.cpp)
 # tinyllm_test(test_fp_qmatvec   tests/fp/test_qmatvec.cpp)
 # tinyllm_test(test_fp_vecops    tests/fp/test_vecops.cpp)
